@@ -498,7 +498,7 @@ function renderPedido() {
   el.innerHTML = html;
 }
 
-function confirmarPedido() {
+async function confirmarPedido() {
   let fields = { obs: document.getElementById('f-obs')?.value.trim() || '' };
 
   if (pedidoMode === 'mesa') {
@@ -513,6 +513,26 @@ function confirmarPedido() {
       return;
     }
   }
+
+const subtotal = cart.reduce((s,i) => s + i.price*i.qty, 0);
+const taxa = pedidoMode === 'delivery' ? 5.00 : 0;
+const total = subtotal + taxa;
+
+const pedido = {
+  tipo: pedidoMode,
+  itens: JSON.stringify(cart),
+  total: total,
+  observacoes: fields.obs || '',
+  mesa: fields.mesa || '',
+  nome: fields.nome || '',
+  endereco: fields.end || '',
+  whatsapp: fields.tel || ''
+};
+
+await supabaseClient
+  .from('pedidos')
+  .insert([pedido]);
+
 
   // Envia pedido pelo WhatsApp automaticamente
   const msg = buildWhatsAppMsg(fields);
@@ -531,5 +551,18 @@ function resetPedido() {
 
 renderPedido();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://cepuonzbidiivvliemvy.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_AkeZSzcHWkfzYNR6qkfwGg_EmcKwCR8";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+
+</script>
 </body>
-</html>
+</html> 
