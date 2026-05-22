@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Bar da Meire — Cardápio & Pedidos</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;min-height:100vh;display:flex;justify-content:center;padding:0}
+  :root{--gold:#f5c518;--red:#c0392b;--dark:#111;--bg:#1a1a1a;--card:#222;--border:#333;--text:#f0f0f0;--muted:#888}
+
+  .app{width:100%;max-width:480px;min-height:100vh;background:#161616;display:flex;flex-direction:column}
+
+  /* HEADER */
+  .header{background:#111;padding:14px 16px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2a2a2a}
+  .logo-circle{width:50px;height:50px;border-radius:50%;background:#1a1a1a;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .logo-circle span{font-size:9px;font-weight:800;color:var(--gold);text-align:center;line-height:1.3;letter-spacing:0.5px}
+  .header-info h1{font-size:17px;font-weight:800;color:var(--gold);letter-spacing:0.3px}
+  .header-info p{font-size:11px;color:var(--muted);margin-top:2px}
+  .delivery-tag{display:inline-flex;align-items:center;gap:5px;background:#1a1a1a;border:1px solid #f5c51840;border-radius:20px;padding:3px 10px;font-size:11px;color:var(--gold);margin-top:5px}
+
+  /* NAV */
+  .nav{display:flex;background:#111;border-bottom:1px solid #2a2a2a;position:sticky;top:0;z-index:10}
+  .nav-btn{flex:1;padding:12px 4px;font-size:12px;font-weight:700;border:none;background:transparent;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:5px}
+  .nav-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .nav-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* SECTIONS */
+  .section{display:none;padding:14px 14px 80px;flex:1}
+  .section.active{display:block}
+
+  /* DAY TABS */
+  .day-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .day-tabs::-webkit-scrollbar{display:none}
+  .day-tab{flex-shrink:0;padding:7px 15px;font-size:12px;font-weight:700;border-radius:20px;border:1px solid #333;background:transparent;cursor:pointer;color:var(--muted);transition:all 0.2s;white-space:nowrap}
+  .day-tab.active{background:var(--dark);color:var(--gold);border-color:var(--gold)}
+  .day-content{display:none}
+  .day-content.active{display:block}
+
+  /* SECTION LABEL */
+  .section-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .section-label::after{content:'';flex:1;height:0.5px;background:#2a2a2a}
+
+  /* MENU CARD */
+  .menu-card{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--border);position:relative;transition:border-color 0.2s}
+  .menu-card:active{border-color:#444}
+  .menu-card.destaque{border-color:#f5c51850}
+  .badge{position:absolute;top:10px;right:10px;font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px}
+  .badge.novo{background:var(--red);color:#fff}
+  .badge.oferta{background:#e67e22;color:#fff}
+  .menu-card h3{font-size:14px;font-weight:700;color:var(--text);padding-right:55px;line-height:1.3}
+  .menu-card p{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4}
+  .card-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  .price{font-size:16px;font-weight:800;color:var(--gold)}
+  .add-btn{background:transparent;color:var(--gold);border:1px solid var(--gold);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.15s;-webkit-tap-highlight-color:transparent}
+  .add-btn:active{background:var(--gold);color:#111;transform:scale(0.96)}
+  .add-btn.added{background:#27ae60;border-color:#27ae60;color:#fff}
+
+  /* MODE TOGGLE */
+  .mode-toggle{display:flex;background:#111;border-radius:10px;padding:3px;margin-bottom:14px;border:1px solid #2a2a2a}
+  .mode-btn{flex:1;padding:9px;font-size:13px;font-weight:700;border:none;background:transparent;cursor:pointer;border-radius:8px;color:var(--muted);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}
+  .mode-btn.active{background:#1e1e1e;color:var(--gold);border:1px solid #f5c51840}
+  .mode-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* CART */
+  .cart-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #2a2a2a}
+  .ci-info{flex:1}
+  .ci-info h4{font-size:13px;font-weight:700;color:var(--text)}
+  .ci-info p{font-size:12px;color:var(--muted)}
+  .qty-ctrl{display:flex;align-items:center;gap:8px}
+  .qty-btn{width:28px;height:28px;border-radius:50%;border:1px solid #333;background:transparent;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text);font-weight:700;-webkit-tap-highlight-color:transparent;transition:background 0.15s}
+  .qty-btn:active{background:#333}
+  .qty-n{font-size:14px;font-weight:700;min-width:20px;text-align:center;color:var(--text)}
+
+  /* TOTAL BAR */
+  .total-bar{margin-top:14px;padding:13px 16px;background:#111;border-radius:12px;display:flex;align-items:center;justify-content:space-between;border:1px solid #2a2a2a}
+  .total-bar span{font-size:13px;color:var(--muted)}
+  .total-bar strong{font-size:20px;color:var(--gold);font-weight:800}
+
+  /* FIELDS */
+  .field-group{margin-bottom:10px}
+  .field-label{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+  .field-label svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .field-input,.field-textarea{width:100%;padding:10px 12px;font-size:14px;border:1px solid #333;border-radius:10px;background:#1e1e1e;color:var(--text);font-family:inherit;outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+  .field-input:focus,.field-textarea:focus{border-color:var(--gold)}
+  .field-textarea{resize:none}
+
+  /* CONFIRM BTN */
+  .confirm-btn{width:100%;margin-top:14px;padding:14px;background:var(--gold);color:#111;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;-webkit-tap-highlight-color:transparent}
+  .confirm-btn:active{background:#e0b015;transform:scale(0.98)}
+  .confirm-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+  /* EMPTY CART */
+  .empty-cart{text-align:center;padding:3rem 1rem;color:var(--muted)}
+  .empty-cart svg{width:48px;height:48px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:0.3;display:block;margin:0 auto 12px}
+  .empty-cart p{font-size:14px;line-height:1.6}
+
+  /* SUCCESS */
+  .success-wrap{text-align:center;padding:2.5rem 1rem}
+  .success-icon{width:72px;height:72px;border-radius:50%;background:#f5c51815;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+  .success-icon svg{width:36px;height:36px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .success-wrap h2{font-size:20px;font-weight:800;color:var(--text);margin-bottom:8px}
+  .success-wrap p{font-size:13px;color:var(--muted);line-height:1.6}
+  .order-num{background:#111;border-radius:12px;padding:12px 20px;margin:16px auto;display:inline-block;border:1px solid #2a2a2a}
+  .order-num span{font-size:12px;color:var(--muted);display:block}
+  .order-num strong{font-size:24px;color:var(--gold);font-weight:800}
+  .new-btn{margin-top:8px;padding:11px 28px;background:transparent;border:1px solid #333;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text);-webkit-tap-highlight-color:transparent}
+  .new-btn:active{background:#222}
+
+  /* WHATSAPP STRIP */
+  .whats-strip{background:#111;margin:14px -14px -80px;padding:14px 16px;display:flex;align-items:center;gap:10px;border-top:1px solid #2a2a2a}
+  .whats-icon{width:32px;height:32px;background:#25d36620;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .whats-icon svg{width:18px;height:18px;fill:#25d366}
+  .whats-strip .wt{font-size:11px;color:var(--muted)}
+  .whats-strip .wn{font-size:14px;font-weight:700;color:#fff}
+  .whats-strip a{color:#25d366;text-decoration:none;font-size:12px;font-weight:700;margin-left:auto;white-space:nowrap}
+
+  /* CART BADGE */
+  .cart-badge{background:var(--red);color:#fff;border-radius:50%;width:17px;height:17px;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:800}
+  .cart-badge.show{display:inline-flex}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-circle"><span>BAR<br>DA<br>MEIRE</span></div>
+    <div class="header-info">
+      <h1>Bar da Meire</h1>
+      <p>Rua Padre Samuel Fritz, 7A — São Paulo/SP</p>
+      <span class="delivery-tag">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Entrega a partir de R$ 5,00
+      </span>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="nav-btn active" onclick="showTab('cardapio')">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
+      Cardápio
+    </button>
+    <button class="nav-btn" onclick="showTab('semana')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Semana
+    </button>
+    <button class="nav-btn" onclick="showTab('pedido')" id="btn-pedido">
+      <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      Pedido
+      <span class="cart-badge" id="cbadge">0</span>
+    </button>
+  </div>
+
+  <!-- CARDÁPIO DO DIA -->
+  <div class="section active" id="tab-cardapio">
+    <div class="section-label">🍽️ Cardápio de hoje — Sexta-feira</div>
+
+    <div class="menu-card destaque" data-name="Peixe a Dorê" data-price="28.00" data-desc="Arroz, feijão, purê e salada">
+      <h3>Peixe a Dorê</h3><p>Arroz, feijão, purê e salada</p>
+      <div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Carne Louca" data-price="25.00" data-desc="Arroz, feijão, purê e salada">
+      <h3>Carne Louca</h3><p>Arroz, feijão, purê e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Filé de Frango à Parmegiana" data-price="28.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Filé de Frango à Parmegiana</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Filé de Frango Grelhado</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+
+    <div class="whats-strip">
+      <div class="whats-icon">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2.1 21.9l4.837-1.312A9.953 9.953 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+      </div>
+      <div>
+        <div class="wt">Peça também pelo WhatsApp</div>
+        <div class="wn">(11) 96606-2666</div>
+      </div>
+      <a href="https://wa.me/5511966062666" target="_blank">Abrir ↗</a>
+    </div>
+  </div>
+
+  <!-- SEMANA -->
+  <div class="section" id="tab-semana">
+    <div class="day-tabs">
+      <button class="day-tab active" onclick="showDay('seg',this)">Segunda</button>
+      <button class="day-tab" onclick="showDay('ter',this)">Terça</button>
+      <button class="day-tab" onclick="showDay('qua',this)">Quarta</button>
+      <button class="day-tab" onclick="showDay('qui',this)">Quinta</button>
+      <button class="day-tab" onclick="showDay('sex',this)">Sexta</button>
+      <button class="day-tab" onclick="showDay('sab',this)">Sábado</button>
+    </div>
+
+    <!-- SEGUNDA -->
+    <div class="day-content active" id="day-seg">
+      <div class="menu-card" data-name="Picadinho com Batata" data-price="25.00" data-desc="Arroz, feijão e salada"><h3>Picadinho com Batata</h3><p>Arroz, feijão e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife à Parmegiana" data-price="28.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife à Parmegiana</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango Grelhado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
+
+    <!-- TERÇA -->
+    <div class="day-content" id="day-ter">
+      <div class="menu-card destaque" data-name="Peixe a Dorê" data-price="28.00" data-desc="Arroz, feijão, purê e salada"><h3>Peixe a Dorê</h3><p>Arroz, feijão, purê e salada</p><div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife de Panela" data-price="25.00" data-desc="Arroz, feijão, purê e salada"><h3>Bife de Panela</h3><p>Arroz, feijão, purê e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Strogonoff de Frango" data-price="25.00" data-desc="Arroz, feijão, purê e salada"><h3>Strogonoff de Frango</h3><p>Arroz, feijão, purê e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango Grelhado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
+
+    <!-- QUARTA -->
+    <div class="day-content" id="day-qua">
+      <div class="menu-card destaque" data-name="Costela Cozida" data-price="25.00" data-desc="Arroz, feijão, batata cozida e salada"><h3>Costela Cozida</h3><p>Arroz, feijão, batata cozida e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Frango ao Molho" data-price="25.00" data-desc="Arroz, feijão, batata cozida e salada"><h3>Frango ao Molho</h3><p>Arroz, feijão, batata cozida e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Escalopinho de Carne" data-price="25.00" data-desc="Arroz, feijão, purê de batata e salada"><h3>Escalopinho de Carne</h3><p>Arroz, feijão, purê de batata e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango Grelhado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
+
+    <!-- QUINTA -->
+    <div class="day-content" id="day-qui">
+      <div class="menu-card destaque" data-name="Rabada com Batata" data-price="25.00" data-desc="Prato completo — oferta do dia"><span class="badge oferta">OFERTA</span><h3>Rabada com Batata</h3><p>Prato completo — oferta do dia</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango à Milanesa" data-price="25.00" data-desc="Prato completo"><h3>Filé de Frango à Milanesa</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Macarrão ao Molho + Filé à Milanesa" data-price="25.00" data-desc="Prato completo"><h3>Macarrão ao Molho + Filé à Milanesa</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Prato completo"><h3>Bisteca</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Prato completo"><h3>Filé de Frango Grelhado</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Prato completo"><h3>Bife Acebolado</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Prato completo"><h3>Linguiça Grelhada</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife a Rolê" data-price="25.00" data-desc="Prato completo — novidade!"><span class="badge novo">NOVO</span><h3>Bife a Rolê</h3><p>Prato completo — novidade!</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
+
+    <!-- SEXTA -->
+    <div class="day-content" id="day-sex">
+      <div class="menu-card destaque" data-name="Peixe a Dorê" data-price="28.00" data-desc="Arroz, feijão, purê e salada"><h3>Peixe a Dorê</h3><p>Arroz, feijão, purê e salada</p><div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Carne Louca" data-price="25.00" data-desc="Arroz, feijão, purê e salada"><h3>Carne Louca</h3><p>Arroz, feijão, purê e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango à Parmegiana" data-price="28.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango à Parmegiana</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango Grelhado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
+
+    <!-- SÁBADO -->
+    <div class="day-content" id="day-sab">
+      <div class="menu-card destaque" data-name="Costela Cozida" data-price="25.00" data-desc="Arroz, feijão e salada"><h3>Costela Cozida</h3><p>Arroz, feijão e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
+  </div>
+
+  <!-- PEDIDO -->
+  <div class="section" id="tab-pedido">
+    <div id="pedido-content"></div>
+  </div>
+
+</div><!-- .app -->
+
+<script>
+let cart = [];
+let orderDone = false;
+let pedidoMode = 'mesa';
+
+function showTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  ['cardapio','semana','pedido'].forEach((t,i) => {
+    if (t === tab) document.querySelectorAll('.nav-btn')[i].classList.add('active');
+  });
+  if (tab === 'pedido') renderPedido();
+}
+
+function showDay(day, btn) {
+  document.querySelectorAll('.day-content').forEach(d => d.classList.remove('active'));
+  document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('day-' + day).classList.add('active');
+  btn.classList.add('active');
+}
+
+function addItem(btn) {
+  const card = btn.closest('.menu-card');
+  const name = card.dataset.name;
+  const price = parseFloat(card.dataset.price);
+  const desc = card.dataset.desc;
+  const existing = cart.find(i => i.name === name);
+  if (existing) { existing.qty++; } else { cart.push({ name, price, desc, qty: 1 }); }
+  updateBadge();
+  btn.textContent = '✓ Adicionado';
+  btn.classList.add('added');
+  setTimeout(() => { btn.textContent = '+ Adicionar'; btn.classList.remove('added'); }, 1500);
+}
+
+function updateBadge() {
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  const b = document.getElementById('cbadge');
+  b.textContent = total;
+  if (total > 0) b.classList.add('show'); else b.classList.remove('show');
+}
+
+function changeQty(name, delta) {
+  const item = cart.find(i => i.name === name);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
+  updateBadge();
+  renderPedido();
+}
+
+function setMode(mode) {
+  pedidoMode = mode;
+  renderPedido();
+}
+
+function buildWhatsAppMsg(fields) {
+  const items = cart.map(i => `• ${i.name} x${i.qty} — R$ ${(i.price*i.qty).toFixed(2).replace('.',',')}`).join('\n');
+  const subtotal = cart.reduce((s,i) => s+i.price*i.qty, 0);
+  const taxa = pedidoMode === 'delivery' ? 5.00 : 0;
+  const total = subtotal + taxa;
+  let msg = `🍽️ *Pedido — Bar da Meire*\n\n`;
+  if (pedidoMode === 'mesa') {
+    msg += `📍 *Mesa:* ${fields.mesa}\n\n`;
+  } else {
+    msg += `🛵 *Delivery*\n👤 Nome: ${fields.nome}\n📍 Endereço: ${fields.end}\n📱 WhatsApp: ${fields.tel}\n\n`;
+  }
+  msg += `*Itens:*\n${items}\n\n`;
+  if (taxa > 0) msg += `Taxa de entrega: R$ 5,00\n`;
+  msg += `*Total: R$ ${total.toFixed(2).replace('.',',')}*`;
+  if (fields.obs) msg += `\n\n📝 Obs: ${fields.obs}`;
+  return encodeURIComponent(msg);
+}
+
+function renderPedido() {
+  const el = document.getElementById('pedido-content');
+
+  if (orderDone) {
+    const num = Math.floor(Math.random() * 900 + 100);
+    el.innerHTML = `
+      <div class="success-wrap">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2>Pedido confirmado!</h2>
+        <p>${pedidoMode==='mesa' ? 'Pedido anotado! Em breve chegamos até você na mesa.' : 'Recebemos seu pedido! A entrega está sendo preparada.'}</p>
+        <div class="order-num"><span>Número do pedido</span><strong>#${num}</strong></div>
+        <button class="new-btn" onclick="resetPedido()">↺ Novo pedido</button>
+      </div>`;
+    return;
+  }
+
+  let html = `
+    <div class="mode-toggle">
+      <button class="mode-btn ${pedidoMode==='mesa'?'active':''}" onclick="setMode('mesa')">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        Comer aqui
+      </button>
+      <button class="mode-btn ${pedidoMode==='delivery'?'active':''}" onclick="setMode('delivery')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Delivery
+      </button>
+    </div>`;
+
+  if (cart.length === 0) {
+    html += `
+      <div class="empty-cart">
+        <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <p>Nenhum item ainda.<br>Escolha no cardápio ou na semana!</p>
+      </div>`;
+    el.innerHTML = html;
+    return;
+  }
+
+  cart.forEach(item => {
+    const safeName = item.name.replace(/'/g, "\\'");
+    html += `
+      <div class="cart-item">
+        <div class="ci-info">
+          <h4>${item.name}</h4>
+          <p>${item.desc} &nbsp;·&nbsp; R$ ${(item.price * item.qty).toFixed(2).replace('.',',')}</p>
+        </div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty('${safeName}', -1)">−</button>
+          <span class="qty-n">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${safeName}', 1)">+</button>
+        </div>
+      </div>`;
+  });
+
+  const subtotal = cart.reduce((s,i) => s + i.price*i.qty, 0);
+  const taxa = pedidoMode === 'delivery' ? 5.00 : 0;
+  const total = subtotal + taxa;
+
+  html += `<div class="total-bar"><span>${pedidoMode==='delivery'?'Total + taxa de entrega (R$ 5,00)':'Total'}</span><strong>R$ ${total.toFixed(2).replace('.',',')}</strong></div>`;
+
+  if (pedidoMode === 'mesa') {
+    html += `
+      <div style="margin-top:14px">
+        <div class="field-group">
+          <div class="field-label">
+            <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            Número da mesa
+          </div>
+          <input class="field-input" id="f-mesa" type="text" placeholder="Ex: Mesa 5">
+        </div>
+        <div class="field-group">
+          <div class="field-label">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Observações (opcional)
+          </div>
+          <textarea class="field-textarea" id="f-obs" rows="2" placeholder="Sem cebola, bem passado..."></textarea>
+        </div>
+      </div>`;
+  } else {
+    html += `
+      <div style="margin-top:14px">
+        <div class="field-group">
+          <div class="field-label">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Seu nome
+          </div>
+          <input class="field-input" id="f-nome" type="text" placeholder="Nome completo">
+        </div>
+        <div class="field-group">
+          <div class="field-label">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Endereço de entrega
+          </div>
+          <input class="field-input" id="f-end" type="text" placeholder="Rua, número, bairro">
+        </div>
+        <div class="field-group">
+          <div class="field-label">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.92 1.23h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.61 5.61l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.01z"/></svg>
+            WhatsApp para contato
+          </div>
+          <input class="field-input" id="f-tel" type="tel" placeholder="(11) 9xxxx-xxxx">
+        </div>
+        <div class="field-group">
+          <div class="field-label">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Observações (opcional)
+          </div>
+          <textarea class="field-textarea" id="f-obs" rows="2" placeholder="Sem cebola, ponto da carne..."></textarea>
+        </div>
+      </div>`;
+  }
+
+  html += `
+    <button class="confirm-btn" onclick="confirmarPedido()">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Confirmar pedido
+    </button>
+    <div class="whats-strip">
+      <div class="whats-icon">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2.1 21.9l4.837-1.312A9.953 9.953 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+      </div>
+      <div>
+        <div class="wt">Ou peça direto pelo WhatsApp</div>
+        <div class="wn">(11) 96606-2666</div>
+      </div>
+      <a href="https://wa.me/5511966062666" target="_blank">Abrir ↗</a>
+    </div>`;
+
+  el.innerHTML = html;
+}
+
+function confirmarPedido() {
+  let fields = { obs: document.getElementById('f-obs')?.value.trim() || '' };
+
+  if (pedidoMode === 'mesa') {
+    fields.mesa = document.getElementById('f-mesa')?.value.trim();
+    if (!fields.mesa) { alert('Por favor, informe o número da mesa!'); return; }
+  } else {
+    fields.nome = document.getElementById('f-nome')?.value.trim();
+    fields.end  = document.getElementById('f-end')?.value.trim();
+    fields.tel  = document.getElementById('f-tel')?.value.trim();
+    if (!fields.nome || !fields.end || !fields.tel) {
+      alert('Preencha nome, endereço e WhatsApp!');
+      return;
+    }
+  }
+
+  // Envia pedido pelo WhatsApp automaticamente
+  const msg = buildWhatsAppMsg(fields);
+  window.open('https://wa.me/5511966062666?text=' + msg, '_blank');
+
+  orderDone = true;
+  cart = [];
+  updateBadge();
+  renderPedido();
+}
+
+function resetPedido() {
+  orderDone = false;
+  renderPedido();
+}
+
+renderPedido();
+</script>
+</body>
+</html>
