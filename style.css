@@ -420,6 +420,8 @@ body {
   outline: none;
   transition: border-color 0.2s;
   -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 .field-input:focus,
 .field-textarea:focus {
