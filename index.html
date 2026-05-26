@@ -1,247 +1,206 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Bar da Meire — Cardápio & Pedidos</title>
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
-
   <meta name="theme-color" content="#f5c518">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style"
-        content="black-translucent">
-
-  <meta name="apple-mobile-web-app-title"
-        content="Bar da Meire">
-
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bar da Meire">
   <link rel="apple-touch-icon" href="icon-192.png">
 
-  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
-
 </head>
-
 <body>
 
 <div class="app">
 
   <!-- HEADER -->
   <div class="header">
-
-    <div class="logo-circle">
-      <img
-        src="img/icon-192.png"
-        alt="Bar da Meire"
-        style="
-          width:46px;
-          height:46px;
-          border-radius:50%;
-          object-fit:cover;
-        "
-      >
-    </div>
-
+    <div class="logo-circle"><img src="img/icon-192.png" alt="Bar da Meire" style="width:46px;height:46px;border-radius:50%;object-fit:cover;"></div>
     <div class="header-info">
-
       <h1>Bar da Meire</h1>
-
       <p>Rua Padre Samuel Fritz, 7A — São Paulo/SP</p>
-
       <span class="delivery-tag">
-
-        <svg width="13"
-             height="13"
-             viewBox="0 0 24 24"
-             fill="none"
-             stroke="currentColor"
-             stroke-width="2"
-             stroke-linecap="round"
-             stroke-linejoin="round">
-
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 6v6l4 2"/>
-
-        </svg>
-
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
         Entrega a partir de R$ 5,00
-
       </span>
-
     </div>
-
   </div>
 
   <!-- NAV -->
   <div class="nav">
-
-    <button class="nav-btn active"
-            onclick="showTab('cardapio')">
-
-      <svg viewBox="0 0 24 24">
-        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-        <rect x="9" y="3" width="6" height="4" rx="2"/>
-        <path d="M9 12h6M9 16h4"/>
-      </svg>
-
+    <button class="nav-btn active" onclick="showTab('cardapio')">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
       Cardápio
-
     </button>
-
-    <button class="nav-btn"
-            onclick="showTab('semana')">
-
-      <svg viewBox="0 0 24 24">
-        <rect x="3" y="4" width="18" height="18" rx="2"/>
-        <path d="M16 2v4M8 2v4M3 10h18"/>
-      </svg>
-
+    <button class="nav-btn" onclick="showTab('semana')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
       Semana
-
     </button>
-
-    <button class="nav-btn"
-            onclick="showTab('pedido')"
-            id="btn-pedido">
-
-      <svg viewBox="0 0 24 24">
-        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <path d="M16 10a4 4 0 0 1-8 0"/>
-      </svg>
-
+    <button class="nav-btn" onclick="showTab('pedido')" id="btn-pedido">
+      <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
       Pedido
-
-      <span class="cart-badge" id="cbadge">
-        0
-      </span>
-
+      <span class="cart-badge" id="cbadge">0</span>
     </button>
-
   </div>
 
-  <!-- CARDÁPIO -->
+  <!-- CARDÁPIO DO DIA -->
   <div class="section active" id="tab-cardapio">
+    <div class="section-label">🍽️ Cardápio de hoje — Sexta-feira</div>
 
-    <div class="section-label">
-      🍽️ Cardápio de hoje
+    <div class="menu-card destaque" data-name="Peixe a Dorê" data-price="28.00" data-desc="Arroz, feijão, purê e salada">
+      <h3>Peixe a Dorê</h3><p>Arroz, feijão, purê e salada</p>
+      <div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Carne Louca" data-price="25.00" data-desc="Arroz, feijão, purê e salada">
+      <h3>Carne Louca</h3><p>Arroz, feijão, purê e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Filé de Frango à Parmegiana" data-price="28.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Filé de Frango à Parmegiana</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Filé de Frango Grelhado</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
+    </div>
+    <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada">
+      <h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p>
+      <div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div>
     </div>
 
-    <!-- EXEMPLO -->
-    <div class="menu-card destaque"
-         data-name="Peixe a Dorê"
-         data-price="28.00"
-         data-desc="Arroz, feijão, purê e salada">
-
-      <h3>Peixe a Dorê</h3>
-
-      <p>Arroz, feijão, purê e salada</p>
-
-      <div class="card-row">
-
-        <span class="price">
-          R$ 28,00
-        </span>
-
-        <button class="add-btn"
-                onclick="addItem(this)">
-
-          + Adicionar
-
-        </button>
-
+    <div class="whats-strip">
+      <div class="whats-icon">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2.1 21.9l4.837-1.312A9.953 9.953 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
       </div>
-
+      <div>
+        <div class="wt">Peça também pelo WhatsApp</div>
+        <div class="wn">(11) 96606-2666</div>
+      </div>
+      <a href="https://wa.me/5511966062666" target="_blank">Abrir ↗</a>
     </div>
-
-    <!-- VOCÊ PODE MANTER TODOS OS OUTROS ITENS -->
-
   </div>
 
   <!-- SEMANA -->
   <div class="section" id="tab-semana">
-
     <div class="day-tabs">
-
-      <button class="day-tab active"
-              onclick="showDay('seg',this)">
-        Segunda
-      </button>
-
-      <button class="day-tab"
-              onclick="showDay('ter',this)">
-        Terça
-      </button>
-
-      <button class="day-tab"
-              onclick="showDay('qua',this)">
-        Quarta
-      </button>
-
-      <button class="day-tab"
-              onclick="showDay('qui',this)">
-        Quinta
-      </button>
-
-      <button class="day-tab"
-              onclick="showDay('sex',this)">
-        Sexta
-      </button>
-
-      <button class="day-tab"
-              onclick="showDay('sab',this)">
-        Sábado
-      </button>
-
+      <button class="day-tab active" onclick="showDay('seg',this)">Segunda</button>
+      <button class="day-tab" onclick="showDay('ter',this)">Terça</button>
+      <button class="day-tab" onclick="showDay('qua',this)">Quarta</button>
+      <button class="day-tab" onclick="showDay('qui',this)">Quinta</button>
+      <button class="day-tab" onclick="showDay('sex',this)">Sexta</button>
+      <button class="day-tab" onclick="showDay('sab',this)">Sábado</button>
     </div>
 
-    <!-- CONTEÚDO DOS DIAS -->
-    <!-- você pode manter os cards exatamente iguais -->
+    <!-- SEGUNDA -->
+    <div class="day-content active" id="day-seg">
+      <div class="menu-card" data-name="Picadinho com Batata" data-price="25.00" data-desc="Arroz, feijão e salada"><h3>Picadinho com Batata</h3><p>Arroz, feijão e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife à Parmegiana" data-price="28.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife à Parmegiana</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango Grelhado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
 
+    <!-- TERÇA -->
+    <div class="day-content" id="day-ter">
+      <div class="menu-card destaque" data-name="Peixe a Dorê" data-price="28.00" data-desc="Arroz, feijão, purê e salada"><h3>Peixe a Dorê</h3><p>Arroz, feijão, purê e salada</p><div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife de Panela" data-price="25.00" data-desc="Arroz, feijão, purê e salada"><h3>Bife de Panela</h3><p>Arroz, feijão, purê e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Strogonoff de Frango" data-price="25.00" data-desc="Arroz, feijão, purê e salada"><h3>Strogonoff de Frango</h3><p>Arroz, feijão, purê e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango Grelhado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
+
+    <!-- QUARTA -->
+    <div class="day-content" id="day-qua">
+      <div class="menu-card destaque" data-name="Costela Cozida" data-price="25.00" data-desc="Arroz, feijão, batata cozida e salada"><h3>Costela Cozida</h3><p>Arroz, feijão, batata cozida e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Frango ao Molho" data-price="25.00" data-desc="Arroz, feijão, batata cozida e salada"><h3>Frango ao Molho</h3><p>Arroz, feijão, batata cozida e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Escalopinho de Carne" data-price="25.00" data-desc="Arroz, feijão, purê de batata e salada"><h3>Escalopinho de Carne</h3><p>Arroz, feijão, purê de batata e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango Grelhado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
+
+    <!-- QUINTA -->
+    <div class="day-content" id="day-qui">
+      <div class="menu-card destaque" data-name="Rabada com Batata" data-price="25.00" data-desc="Prato completo — oferta do dia"><span class="badge oferta">OFERTA</span><h3>Rabada com Batata</h3><p>Prato completo — oferta do dia</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango à Milanesa" data-price="25.00" data-desc="Prato completo"><h3>Filé de Frango à Milanesa</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Macarrão ao Molho + Filé à Milanesa" data-price="25.00" data-desc="Prato completo"><h3>Macarrão ao Molho + Filé à Milanesa</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Prato completo"><h3>Bisteca</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Prato completo"><h3>Filé de Frango Grelhado</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Prato completo"><h3>Bife Acebolado</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Prato completo"><h3>Linguiça Grelhada</h3><p>Prato completo</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife a Rolê" data-price="25.00" data-desc="Prato completo — novidade!"><span class="badge novo">NOVO</span><h3>Bife a Rolê</h3><p>Prato completo — novidade!</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
+
+    <!-- SEXTA -->
+    <div class="day-content" id="day-sex">
+      <div class="menu-card destaque" data-name="Peixe a Dorê" data-price="28.00" data-desc="Arroz, feijão, purê e salada"><h3>Peixe a Dorê</h3><p>Arroz, feijão, purê e salada</p><div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Carne Louca" data-price="25.00" data-desc="Arroz, feijão, purê e salada"><h3>Carne Louca</h3><p>Arroz, feijão, purê e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango à Parmegiana" data-price="28.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango à Parmegiana</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 28,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango Grelhado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango Grelhado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
+
+    <!-- SÁBADO -->
+    <div class="day-content" id="day-sab">
+      <div class="menu-card destaque" data-name="Costela Cozida" data-price="25.00" data-desc="Arroz, feijão e salada"><h3>Costela Cozida</h3><p>Arroz, feijão e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bisteca" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bisteca</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Bife Acebolado" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Bife Acebolado</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Filé de Frango" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Filé de Frango</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Linguiça Grelhada" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Linguiça Grelhada</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+      <div class="menu-card" data-name="Omelete" data-price="25.00" data-desc="Arroz, feijão, fritas e salada"><h3>Omelete</h3><p>Arroz, feijão, fritas e salada</p><div class="card-row"><span class="price">R$ 25,00</span><button class="add-btn" onclick="addItem(this)">+ Adicionar</button></div></div>
+    </div>
   </div>
 
   <!-- PEDIDO -->
   <div class="section" id="tab-pedido">
-
     <div id="pedido-content"></div>
-
   </div>
 
-</div>
+</div><!-- .app -->
 
-<!-- SUPABASE -->
+<!-- Supabase (deve vir ANTES do script.js) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- SCRIPT -->
+<!-- Lógica da aplicação -->
 <script src="script.js"></script>
 
-<!-- SERVICE WORKER -->
+<!-- Registro do Service Worker (PWA) -->
 <script>
-
-  if ('serviceWorker' in navigator) {
-
-    window.addEventListener('load', () => {
-
-      navigator.serviceWorker
-        .register('./sw.js')
-
-        .then(() => {
-          console.log('Service Worker registrado!');
-        })
-
-        .catch(err => {
-          console.log('Erro no SW:', err);
-        });
-
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/Bar-da-meire/sw.js")
+        .then(() => console.log("Service Worker registrado!"))
+        .catch(err => console.log("Erro no SW:", err));
     });
-
   }
-
 </script>
 
 </body>
