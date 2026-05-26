@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bar-da-meire-v2';
+const CACHE_NAME = 'bar-da-meire-v3';
 
 const ASSETS = [
   './',
