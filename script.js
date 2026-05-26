@@ -290,14 +290,8 @@ function renderPedido() {
             <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             CEP
           </div>
-          <div style="display:flex;gap:8px">
-            <input class="field-input" id="f-cep" type="tel" placeholder="00000-000"
-              oninput="this.value=this.value.replace(/\D/g,'').replace(/(\d{5})(\d)/,'\$1-\$2').substring(0,9)"
-              style="flex:1">
-            <button onclick="buscarCEP()" style="background:var(--gold);color:#111;border:none;border-radius:10px;padding:0 14px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">
-              Calcular frete
-            </button>
-          </div>
+          <input class="field-input" id="f-cep" type="tel" placeholder="00000-000"
+            oninput="this.value=this.value.replace(/\D/g,'').replace(/(\d{5})(\d)/,'\$1-\$2').substring(0,9); if(this.value.replace(/\D/g,'').length===8) buscarCEP();">
           <div id="frete-status" style="margin-top:7px;font-size:12px;line-height:1.5"></div>
           <div style="margin-top:8px;font-size:11px;color:#555;background:#1a1a1a;border-radius:8px;padding:8px 10px;border:1px solid #2a2a2a">
             🛵 Faixas de entrega:<br>
@@ -361,7 +355,7 @@ async function confirmarPedido() {
       alert('Preencha nome, endereço, CEP e WhatsApp!'); return;
     }
     if (taxaEntrega === 0 && distanciaKm === null) {
-      alert('Clique em "Calcular frete" antes de confirmar!'); return;
+      alert('Digite seu CEP para calcular o frete!'); return;
     }
     if (distanciaKm !== null && getTaxaPorKm(distanciaKm) === null) {
       alert('Endereço fora da área de entrega.'); return;
