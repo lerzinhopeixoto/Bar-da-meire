@@ -9,13 +9,13 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/Bar-da-meire/icon-192.png",
+      "src": "/Bar-da-meire/img/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/Bar-da-meire/icon-512.png",
+      "src": "/Bar-da-meire/img/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
