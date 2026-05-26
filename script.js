@@ -4,8 +4,8 @@ const SUPABASE_KEY = "sb_publishable_AkeZSzcHWkfzYNR6qkfwGg_EmcKwCR8";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Localização do Bar da Meire (Rua Padre Samuel Fritz, 7A — SP) ──────────
-const BAR_LAT = -23.5241;
-const BAR_LNG = -46.6292;
+const BAR_LAT = -23.6178;
+const BAR_LNG = -46.7401;
 
 // ── Faixas de entrega ──────────────────────────────────────────────────────
 const FAIXAS_ENTREGA = [
