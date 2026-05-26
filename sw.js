@@ -1,12 +1,13 @@
 const CACHE_NAME = 'bar-da-meire-v2';
+
 const ASSETS = [
-  '/Bar-da-meire/',
-  '/Bar-da-meire/index.html',
-  '/Bar-da-meire/style.css',
-  '/Bar-da-meire/script.js',
-  '/Bar-da-meire/manifest.json',
-  '/Bar-da-meire/img/icon-192.png',
-  '/Bar-da-meire/img/icon-512.png'
+  './',
+  './index.html',
+  './style.css',
+  './script.js',
+  './manifest.json',
+  './img/icon-192.png',
+  './img/icon-512.png'
 ];
 
 // Instalação: salva os arquivos no cache
