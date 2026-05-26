@@ -3,10 +3,24 @@ const SUPABASE_URL = "https://cepuonzbidiivvliemvy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_AkeZSzcHWkfzYNR6qkfwGg_EmcKwCR8";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// ── Localização do Bar da Meire (Rua Padre Samuel Fritz, 7A — SP) ──────────
+const BAR_LAT = -23.5241;
+const BAR_LNG = -46.6292;
+
+// ── Faixas de entrega ──────────────────────────────────────────────────────
+const FAIXAS_ENTREGA = [
+  { min: 0,  max: 3,  taxa: 5.00,  label: 'até 3km — R$ 5,00'  },
+  { min: 3,  max: 6,  taxa: 8.00,  label: '3 a 6km — R$ 8,00'  },
+  { min: 6,  max: 10, taxa: 12.00, label: '6 a 10km — R$ 12,00' },
+];
+const FORA_DA_AREA = 10; // km máximo de entrega
+
 // ── Estado Global ──────────────────────────────────────────────────────────
-let cart = [];
-let orderDone = false;
-let pedidoMode = 'mesa';
+let cart        = [];
+let orderDone   = false;
+let pedidoMode  = 'mesa';
+let taxaEntrega = 0;
+let distanciaKm = null;
 
 // ── Navegação ──────────────────────────────────────────────────────────────
 function showTab(tab) {
@@ -28,31 +42,24 @@ function showDay(day, btn) {
 
 // ── Carrinho ───────────────────────────────────────────────────────────────
 function addItem(btn) {
-  const card = btn.closest('.menu-card');
-  const name = card.dataset.name;
+  const card  = btn.closest('.menu-card');
+  const name  = card.dataset.name;
   const price = parseFloat(card.dataset.price);
-  const desc = card.dataset.desc;
+  const desc  = card.dataset.desc;
   const existing = cart.find(i => i.name === name);
-  if (existing) {
-    existing.qty++;
-  } else {
-    cart.push({ name, price, desc, qty: 1 });
-  }
+  if (existing) { existing.qty++; }
+  else { cart.push({ name, price, desc, qty: 1 }); }
   updateBadge();
   btn.textContent = '✓ Adicionado';
   btn.classList.add('added');
-  setTimeout(() => {
-    btn.textContent = '+ Adicionar';
-    btn.classList.remove('added');
-  }, 1500);
+  setTimeout(() => { btn.textContent = '+ Adicionar'; btn.classList.remove('added'); }, 1500);
 }
 
 function updateBadge() {
   const total = cart.reduce((s, i) => s + i.qty, 0);
   const b = document.getElementById('cbadge');
   b.textContent = total;
-  if (total > 0) b.classList.add('show');
-  else b.classList.remove('show');
+  total > 0 ? b.classList.add('show') : b.classList.remove('show');
 }
 
 function changeQty(name, delta) {
@@ -65,28 +72,110 @@ function changeQty(name, delta) {
 }
 
 function setMode(mode) {
-  pedidoMode = mode;
+  pedidoMode  = mode;
+  taxaEntrega = 0;
+  distanciaKm = null;
   renderPedido();
+}
+
+// ── Cálculo de distância (Haversine) ───────────────────────────────────────
+function calcularDistancia(lat1, lng1, lat2, lng2) {
+  const R  = 6371;
+  const dL = (lat2 - lat1) * Math.PI / 180;
+  const dG = (lng2 - lng1) * Math.PI / 180;
+  const a  = Math.sin(dL/2)**2 +
+             Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dG/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function getTaxaPorKm(km) {
+  const faixa = FAIXAS_ENTREGA.find(f => km >= f.min && km < f.max);
+  return faixa ? faixa.taxa : null; // null = fora da área
+}
+
+// ── Busca coordenadas pelo CEP (ViaCEP + Nominatim) ───────────────────────
+async function buscarCEP() {
+  const cepInput = document.getElementById('f-cep');
+  const statusEl = document.getElementById('frete-status');
+  const cep = cepInput.value.replace(/\D/g, '');
+
+  if (cep.length !== 8) {
+    statusEl.innerHTML = '<span style="color:#e74c3c">⚠️ Digite um CEP válido com 8 dígitos.</span>';
+    return;
+  }
+
+  statusEl.innerHTML = '<span style="color:#888">🔍 Calculando frete...</span>';
+  taxaEntrega = 0;
+  distanciaKm = null;
+
+  try {
+    // 1. ViaCEP → pega logradouro e cidade
+    const viaCep = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const dados  = await viaCep.json();
+    if (dados.erro) throw new Error('CEP não encontrado');
+
+    const enderecoCompleto = `${dados.logradouro}, ${dados.bairro}, ${dados.localidade}, ${dados.uf}, Brasil`;
+
+    // 2. Nominatim (OpenStreetMap) → pega lat/lng
+    const geo = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(enderecoCompleto)}&format=json&limit=1`,
+      { headers: { 'Accept-Language': 'pt-BR' } }
+    );
+    const geoData = await geo.json();
+    if (!geoData.length) throw new Error('Endereço não encontrado');
+
+    const lat = parseFloat(geoData[0].lat);
+    const lng = parseFloat(geoData[0].lon);
+    const km  = calcularDistancia(BAR_LAT, BAR_LNG, lat, lng);
+    distanciaKm = km;
+
+    const taxa = getTaxaPorKm(km);
+
+    if (taxa === null) {
+      statusEl.innerHTML = `<span style="color:#e74c3c">😕 Fora da área de entrega (${km.toFixed(1)}km). Entregamos até ${FORA_DA_AREA}km.</span>`;
+      taxaEntrega = 0;
+    } else {
+      taxaEntrega = taxa;
+      const faixa = FAIXAS_ENTREGA.find(f => km >= f.min && km < f.max);
+      statusEl.innerHTML = `<span style="color:#27ae60">✅ ${km.toFixed(1)}km de distância — Taxa: <strong>R$ ${taxa.toFixed(2).replace('.',',')}</strong> (${faixa.label})</span>`;
+    }
+
+    // Atualiza o total exibido
+    atualizarTotal();
+
+  } catch (err) {
+    statusEl.innerHTML = `<span style="color:#e74c3c">⚠️ ${err.message || 'Erro ao calcular. Verifique o CEP.'}</span>`;
+  }
+}
+
+function atualizarTotal() {
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const total    = subtotal + taxaEntrega;
+  const el = document.getElementById('total-valor');
+  const lb = document.getElementById('total-label');
+  if (el) el.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+  if (lb) lb.textContent = taxaEntrega > 0
+    ? `Total + taxa de entrega (R$ ${taxaEntrega.toFixed(2).replace('.',',')})`
+    : 'Total';
 }
 
 // ── Montagem da mensagem WhatsApp ──────────────────────────────────────────
 function buildWhatsAppMsg(fields) {
-  const items = cart
-    .map(i => `• ${i.name} x${i.qty} — R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`)
-    .join('\n');
+  const items    = cart.map(i => `• ${i.name} x${i.qty} — R$ ${(i.price*i.qty).toFixed(2).replace('.',',')}`).join('\n');
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const taxa = pedidoMode === 'delivery' ? 5.00 : 0;
-  const total = subtotal + taxa;
+  const total    = subtotal + taxaEntrega;
 
   let msg = `🍽️ *Pedido — Bar da Meire*\n\n`;
   if (pedidoMode === 'mesa') {
     msg += `📍 *Mesa:* ${fields.mesa}\n\n`;
   } else {
-    msg += `🛵 *Delivery*\n👤 Nome: ${fields.nome}\n📍 Endereço: ${fields.end}\n📱 WhatsApp: ${fields.tel}\n\n`;
+    msg += `🛵 *Delivery*\n👤 Nome: ${fields.nome}\n📍 Endereço: ${fields.end}\n📮 CEP: ${fields.cep}\n📱 WhatsApp: ${fields.tel}\n`;
+    if (distanciaKm) msg += `📏 Distância: ${distanciaKm.toFixed(1)}km\n`;
+    msg += '\n';
   }
   msg += `*Itens:*\n${items}\n\n`;
-  if (taxa > 0) msg += `Taxa de entrega: R$ 5,00\n`;
-  msg += `*Total: R$ ${total.toFixed(2).replace('.', ',')}*`;
+  if (taxaEntrega > 0) msg += `Taxa de entrega: R$ ${taxaEntrega.toFixed(2).replace('.',',')}\n`;
+  msg += `*Total: R$ ${total.toFixed(2).replace('.',',')}*`;
   if (fields.obs) msg += `\n\n📝 Obs: ${fields.obs}`;
   return encodeURIComponent(msg);
 }
@@ -151,12 +240,11 @@ function renderPedido() {
   });
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const taxa = pedidoMode === 'delivery' ? 5.00 : 0;
-  const total = subtotal + taxa;
+  const total    = subtotal + taxaEntrega;
 
   html += `<div class="total-bar">
-    <span>${pedidoMode === 'delivery' ? 'Total + taxa de entrega (R$ 5,00)' : 'Total'}</span>
-    <strong>R$ ${total.toFixed(2).replace('.', ',')}</strong>
+    <span id="total-label">${taxaEntrega > 0 ? `Total + taxa de entrega (R$ ${taxaEntrega.toFixed(2).replace('.',',')})` : 'Total'}</span>
+    <strong id="total-valor">R$ ${total.toFixed(2).replace('.', ',')}</strong>
   </div>`;
 
   if (pedidoMode === 'mesa') {
@@ -180,6 +268,7 @@ function renderPedido() {
   } else {
     html += `
       <div style="margin-top:14px">
+
         <div class="field-group">
           <div class="field-label">
             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -187,6 +276,7 @@ function renderPedido() {
           </div>
           <input class="field-input" id="f-nome" type="text" placeholder="Nome completo">
         </div>
+
         <div class="field-group">
           <div class="field-label">
             <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -194,6 +284,29 @@ function renderPedido() {
           </div>
           <input class="field-input" id="f-end" type="text" placeholder="Rua, número, bairro">
         </div>
+
+        <div class="field-group">
+          <div class="field-label">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            CEP
+          </div>
+          <div style="display:flex;gap:8px">
+            <input class="field-input" id="f-cep" type="tel" placeholder="00000-000"
+              oninput="this.value=this.value.replace(/\D/g,'').replace(/(\d{5})(\d)/,'\$1-\$2').substring(0,9)"
+              style="flex:1">
+            <button onclick="buscarCEP()" style="background:var(--gold);color:#111;border:none;border-radius:10px;padding:0 14px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">
+              Calcular frete
+            </button>
+          </div>
+          <div id="frete-status" style="margin-top:7px;font-size:12px;line-height:1.5"></div>
+          <div style="margin-top:8px;font-size:11px;color:#555;background:#1a1a1a;border-radius:8px;padding:8px 10px;border:1px solid #2a2a2a">
+            🛵 Faixas de entrega:<br>
+            &nbsp;• até 3km → R$ 5,00<br>
+            &nbsp;• 3 a 6km → R$ 8,00<br>
+            &nbsp;• 6 a 10km → R$ 12,00
+          </div>
+        </div>
+
         <div class="field-group">
           <div class="field-label">
             <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.92 1.23h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.61 5.61l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.01z"/></svg>
@@ -201,6 +314,7 @@ function renderPedido() {
           </div>
           <input class="field-input" id="f-tel" type="tel" placeholder="(11) 9xxxx-xxxx">
         </div>
+
         <div class="field-group">
           <div class="field-label">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -240,26 +354,35 @@ async function confirmarPedido() {
   } else {
     fields.nome = document.getElementById('f-nome')?.value.trim();
     fields.end  = document.getElementById('f-end')?.value.trim();
+    fields.cep  = document.getElementById('f-cep')?.value.trim();
     fields.tel  = document.getElementById('f-tel')?.value.trim();
-    if (!fields.nome || !fields.end || !fields.tel) {
-      alert('Preencha nome, endereço e WhatsApp!');
-      return;
+
+    if (!fields.nome || !fields.end || !fields.cep || !fields.tel) {
+      alert('Preencha nome, endereço, CEP e WhatsApp!'); return;
+    }
+    if (taxaEntrega === 0 && distanciaKm === null) {
+      alert('Clique em "Calcular frete" antes de confirmar!'); return;
+    }
+    if (distanciaKm !== null && getTaxaPorKm(distanciaKm) === null) {
+      alert('Endereço fora da área de entrega.'); return;
     }
   }
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const taxa = pedidoMode === 'delivery' ? 5.00 : 0;
-  const total = subtotal + taxa;
+  const total    = subtotal + taxaEntrega;
 
   const pedido = {
-    tipo: pedidoMode,
-    itens: JSON.stringify(cart),
-    total: total,
+    tipo:        pedidoMode,
+    itens:       JSON.stringify(cart),
+    total:       total,
     observacoes: fields.obs || '',
-    mesa: fields.mesa || '',
-    nome: fields.nome || '',
-    endereco: fields.end || '',
-    whatsapp: fields.tel || ''
+    mesa:        fields.mesa || '',
+    nome:        fields.nome || '',
+    endereco:    fields.end || '',
+    cep:         fields.cep || '',
+    whatsapp:    fields.tel || '',
+    taxa_entrega: taxaEntrega,
+    distancia_km: distanciaKm ? parseFloat(distanciaKm.toFixed(2)) : 0
   };
 
   await supabaseClient.from('pedidos').insert([pedido]);
@@ -267,14 +390,18 @@ async function confirmarPedido() {
   const msg = buildWhatsAppMsg(fields);
   window.open('https://wa.me/5511966062666?text=' + msg, '_blank');
 
-  orderDone = true;
-  cart = [];
+  orderDone   = true;
+  taxaEntrega = 0;
+  distanciaKm = null;
+  cart        = [];
   updateBadge();
   renderPedido();
 }
 
 function resetPedido() {
-  orderDone = false;
+  orderDone   = false;
+  taxaEntrega = 0;
+  distanciaKm = null;
   renderPedido();
 }
 
