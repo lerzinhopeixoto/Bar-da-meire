@@ -616,3 +616,21 @@ body {
 .cart-badge.show {
   display: inline-flex;
 }
+
+.pagamento-btn {
+  padding: 10px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.pagamento-btn.selected {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: #f5c51815;
+}

@@ -13,7 +13,7 @@ const FAIXAS_ENTREGA = [
   { min: 3,  max: 6,  taxa: 8.00,  label: '3 a 6km — R$ 8,00'  },
   { min: 6,  max: 10, taxa: 12.00, label: '6 a 10km — R$ 12,00' },
 ];
-const FORA_DA_AREA = 10; // km máximo de entrega
+const FORA_DA_AREA = 10;
 
 // ── Estado Global ──────────────────────────────────────────────────────────
 let cart        = [];
@@ -78,6 +78,12 @@ function setMode(mode) {
   renderPedido();
 }
 
+function selecionarPagamento(btn, forma) {
+  document.querySelectorAll('.pagamento-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('f-pagamento').value = forma;
+}
+
 // ── Cálculo de distância (Haversine) ───────────────────────────────────────
 function calcularDistancia(lat1, lng1, lat2, lng2) {
   const R  = 6371;
@@ -90,10 +96,10 @@ function calcularDistancia(lat1, lng1, lat2, lng2) {
 
 function getTaxaPorKm(km) {
   const faixa = FAIXAS_ENTREGA.find(f => km >= f.min && km < f.max);
-  return faixa ? faixa.taxa : null; // null = fora da área
+  return faixa ? faixa.taxa : null;
 }
 
-// ── Busca coordenadas pelo CEP (ViaCEP + Nominatim) ───────────────────────
+// ── Busca coordenadas pelo CEP ─────────────────────────────────────────────
 async function buscarCEP() {
   const cepInput = document.getElementById('f-cep');
   const statusEl = document.getElementById('frete-status');
@@ -109,14 +115,12 @@ async function buscarCEP() {
   distanciaKm = null;
 
   try {
-    // 1. ViaCEP → pega logradouro e cidade
     const viaCep = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
     const dados  = await viaCep.json();
     if (dados.erro) throw new Error('CEP não encontrado');
 
     const enderecoCompleto = `${dados.logradouro}, ${dados.bairro}, ${dados.localidade}, ${dados.uf}, Brasil`;
 
-    // 2. Nominatim (OpenStreetMap) → pega lat/lng
     const geo = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(enderecoCompleto)}&format=json&limit=1`,
       { headers: { 'Accept-Language': 'pt-BR' } }
@@ -140,7 +144,6 @@ async function buscarCEP() {
       statusEl.innerHTML = `<span style="color:#27ae60">✅ ${km.toFixed(1)}km de distância — Taxa: <strong>R$ ${taxa.toFixed(2).replace('.',',')}</strong> (${faixa.label})</span>`;
     }
 
-    // Atualiza o total exibido
     atualizarTotal();
 
   } catch (err) {
@@ -176,6 +179,7 @@ function buildWhatsAppMsg(fields) {
   msg += `*Itens:*\n${items}\n\n`;
   if (taxaEntrega > 0) msg += `Taxa de entrega: R$ ${taxaEntrega.toFixed(2).replace('.',',')}\n`;
   msg += `*Total: R$ ${total.toFixed(2).replace('.',',')}*`;
+  msg += `\n💳 *Pagamento: ${fields.pagamento}*`;
   if (fields.obs) msg += `\n\n📝 Obs: ${fields.obs}`;
   return encodeURIComponent(msg);
 }
@@ -268,7 +272,6 @@ function renderPedido() {
   } else {
     html += `
       <div style="margin-top:14px">
-
         <div class="field-group">
           <div class="field-label">
             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -276,7 +279,6 @@ function renderPedido() {
           </div>
           <input class="field-input" id="f-nome" type="text" placeholder="Nome completo">
         </div>
-
         <div class="field-group">
           <div class="field-label">
             <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -284,7 +286,6 @@ function renderPedido() {
           </div>
           <input class="field-input" id="f-end" type="text" placeholder="Rua, número, bairro">
         </div>
-
         <div class="field-group">
           <div class="field-label">
             <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -300,7 +301,6 @@ function renderPedido() {
             &nbsp;• 6 a 10km → R$ 12,00
           </div>
         </div>
-
         <div class="field-group">
           <div class="field-label">
             <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.92 1.23h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.61 5.61l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.01z"/></svg>
@@ -308,7 +308,6 @@ function renderPedido() {
           </div>
           <input class="field-input" id="f-tel" type="tel" placeholder="(11) 9xxxx-xxxx">
         </div>
-
         <div class="field-group">
           <div class="field-label">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -320,6 +319,19 @@ function renderPedido() {
   }
 
   html += `
+    <div style="margin-top:14px">
+      <div class="field-label" style="margin-bottom:8px">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Forma de pagamento
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <button class="pagamento-btn" onclick="selecionarPagamento(this,'Pix')">💚 Pix</button>
+        <button class="pagamento-btn" onclick="selecionarPagamento(this,'Cartão de crédito')">💳 Crédito</button>
+        <button class="pagamento-btn" onclick="selecionarPagamento(this,'Cartão de débito')">💳 Débito</button>
+        <button class="pagamento-btn" onclick="selecionarPagamento(this,'Dinheiro')">💵 Dinheiro</button>
+      </div>
+      <input type="hidden" id="f-pagamento" value="">
+    </div>
     <button class="confirm-btn" onclick="confirmarPedido()">
       <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       Confirmar pedido
@@ -340,7 +352,13 @@ function renderPedido() {
 
 // ── Confirmação do pedido ──────────────────────────────────────────────────
 async function confirmarPedido() {
-  let fields = { obs: document.getElementById('f-obs')?.value.trim() || '' };
+  const pagamento = document.getElementById('f-pagamento')?.value;
+  if (!pagamento) { alert('Selecione a forma de pagamento!'); return; }
+
+  let fields = {
+    obs: document.getElementById('f-obs')?.value.trim() || '',
+    pagamento
+  };
 
   if (pedidoMode === 'mesa') {
     fields.mesa = document.getElementById('f-mesa')?.value.trim();
@@ -366,17 +384,18 @@ async function confirmarPedido() {
   const total    = subtotal + taxaEntrega;
 
   const pedido = {
-    tipo:        pedidoMode,
-    itens:       JSON.stringify(cart),
-    total:       total,
-    observacoes: fields.obs || '',
-    mesa:        fields.mesa || '',
-    nome:        fields.nome || '',
-    endereco:    fields.end || '',
-    cep:         fields.cep || '',
-    whatsapp:    fields.tel || '',
-    taxa_entrega: taxaEntrega,
-    distancia_km: distanciaKm ? parseFloat(distanciaKm.toFixed(2)) : 0
+    tipo:            pedidoMode,
+    itens:           JSON.stringify(cart),
+    total:           total,
+    observacoes:     fields.obs || '',
+    mesa:            fields.mesa || '',
+    nome:            fields.nome || '',
+    endereco:        fields.end || '',
+    cep:             fields.cep || '',
+    whatsapp:        fields.tel || '',
+    taxa_entrega:    taxaEntrega,
+    distancia_km:    distanciaKm ? parseFloat(distanciaKm.toFixed(2)) : 0,
+    forma_pagamento: pagamento
   };
 
   await supabaseClient.from('pedidos').insert([pedido]);
